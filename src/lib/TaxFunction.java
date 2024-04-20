@@ -47,6 +47,11 @@ public class TaxFunction {
 		}
 	}
 
+	public static final int MAX_WORKING_MONTHS_PER_YEAR = 12;
+	public static final int MAX_CHILDREN_FOR_TAX = 3;
+	public static final int STANDARD_DEDUCTIBLE = 54000000;
+	public static final int PER_CHILD_DEDUCTIBLE = 1500000;
+
 	public static int calculateTax(TaxCalculationInfo taxInfo) {
 		int tax = 0;
 		int monthlySalary = taxInfo.getMonthlySalary();
@@ -54,29 +59,25 @@ public class TaxFunction {
 		int numberOfMonthWorking = taxInfo.getNumberOfMonthWorking();
 		int deductible = taxInfo.getDeductible();
 		boolean isMarried = taxInfo.isMarried();
-		int numberOfChildren = taxInfo.getNumberOfChildren();
+		int numberOfChildren = Math.min(taxInfo.getNumberOfChildren(), MAX_CHILDREN_FOR_TAX);
 
 		// Calculation logic
-		if (numberOfMonthWorking > 12) {
-			System.err.println("More than 12 month working per year");
+		if (numberOfMonthWorking > MAX_WORKING_MONTHS_PER_YEAR) {
+			throw new IllegalArgumentException("Lebih dari 12 bulan bekerja dalam setahun");
 		}
 
-		if (numberOfChildren > 3) {
-			numberOfChildren = 3;
+		if (numberOfChildren > MAX_CHILDREN_FOR_TAX) {
+			numberOfChildren = MAX_CHILDREN_FOR_TAX;
 		}
 
 		if (isMarried) {
 			tax = (int) Math.round(0.05 * (((monthlySalary + otherMonthlyIncome) * numberOfMonthWorking) - deductible
-					- (54000000 + 4500000 + (numberOfChildren * 1500000))));
+					- (STANDARD_DEDUCTIBLE + (numberOfChildren * PER_CHILD_DEDUCTIBLE))));
 		} else {
-			tax = (int) Math.round(
-					0.05 * (((monthlySalary + otherMonthlyIncome) * numberOfMonthWorking) - deductible - 54000000));
+			tax = (int) Math.round(0.05 * (((monthlySalary + otherMonthlyIncome) * numberOfMonthWorking) - deductible
+					- STANDARD_DEDUCTIBLE));
 		}
 
-		if (tax < 0) {
-			return 0;
-		} else {
-			return tax;
-		}
+		return Math.max(0, tax);
 	}
 }
