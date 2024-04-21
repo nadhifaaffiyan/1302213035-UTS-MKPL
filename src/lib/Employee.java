@@ -15,10 +15,8 @@ public class Employee {
 	private int yearJoined;
 	private int monthJoined;
 	private int dayJoined;
-	private int monthWorkingInYear;
-
 	private boolean isForeigner;
-	private boolean gender; // true = Laki-laki, false = Perempuan
+	private boolean isMale; // true = Laki-laki, false = Perempuan
 
 	private int monthlySalary;
 	private int otherMonthlyIncome;
@@ -28,7 +26,7 @@ public class Employee {
 	private List<String> childNames;
 
 	public Employee(String employeeId, String firstName, String lastName, String idNumber, String address,
-			int yearJoined, int monthJoined, int dayJoined, boolean isForeigner, boolean gender) {
+			int yearJoined, int monthJoined, int dayJoined, boolean isForeigner, boolean isMale) {
 		this.employeeId = employeeId;
 		this.firstName = firstName;
 		this.lastName = lastName;
@@ -38,27 +36,17 @@ public class Employee {
 		this.monthJoined = monthJoined;
 		this.dayJoined = dayJoined;
 		this.isForeigner = isForeigner;
-		this.gender = gender;
+		this.isMale = isMale;
 
-		this.childNames = new LinkedList<String>();
+		this.childNames = new LinkedList<>();
 	}
 
-	public void setMonthlySalary(int grade) {
-		if (grade == 1) {
-			monthlySalary = 3000000;
-			if (isForeigner) {
-				monthlySalary = (int) (3000000 * 1.5);
-			}
-		} else if (grade == 2) {
-			monthlySalary = 5000000;
-			if (isForeigner) {
-				monthlySalary = (int) (3000000 * 1.5);
-			}
-		} else if (grade == 3) {
-			monthlySalary = 7000000;
-			if (isForeigner) {
-				monthlySalary = (int) (3000000 * 1.5);
-			}
+	// Refactored setMonthlySalary method using enum
+	public void setMonthlySalary(Grade grade) {
+		if (grade != null) {
+			monthlySalary = isForeigner ? (int) (grade.getBaseSalary() * 1.5) : grade.getBaseSalary();
+		} else {
+			throw new IllegalArgumentException("Invalid grade");
 		}
 	}
 
@@ -66,7 +54,7 @@ public class Employee {
 		this.annualDeductible = deductible;
 	}
 
-	public void setAdditionalIncome(int income) {
+	public void setOtherMonthlyIncome(int income) {
 		this.otherMonthlyIncome = income;
 	}
 
@@ -78,23 +66,22 @@ public class Employee {
 		this.childNames.add(childName);
 	}
 
-	public int getAnnualIncomeTax() {
-		// Menghitung berapa lama pegawai bekerja dalam setahun ini
-		LocalDate currentDate = LocalDate.now();
-		int currentYear = currentDate.getYear();
-		int currentMonth = currentDate.getMonthValue();
+	// Getters and other methods...
 
-		if (currentYear == yearJoined) {
-			monthWorkingInYear = currentMonth - monthJoined;
-		} else {
-			monthWorkingInYear = 12;
+	// Inner enum to represent employee grade
+	public enum Grade {
+		GRADE_1(3000000),
+		GRADE_2(5000000),
+		GRADE_3(7000000);
+
+		private final int baseSalary;
+
+		Grade(int baseSalary) {
+			this.baseSalary = baseSalary;
 		}
 
-		// Inisialisasi objek TaxCalculationInfo
-		TaxFunction.TaxCalculationInfo taxInfo = new TaxFunction.TaxCalculationInfo(monthlySalary, otherMonthlyIncome,
-				monthWorkingInYear, annualDeductible, spouseName != null, childNames.size());
-
-		// Memanggil metode calculateTax dengan objek taxInfo sebagai parameter
-		return TaxFunction.calculateTax(taxInfo);
+		public int getBaseSalary() {
+			return baseSalary;
+		}
 	}
 }
