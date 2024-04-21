@@ -1,18 +1,20 @@
 package lib;
 
+import java.math.BigDecimal;
+
 public class TaxFunction {
 
 	public static class TaxCalculationInfo {
-		private int baseMonthlySalary;
+		private int monthlySalary;
 		private int otherMonthlyIncome;
 		private int numberOfMonthsWorking;
 		private int annualDeductible;
 		private boolean isMarried;
 		private int numberOfChildren;
 
-		public TaxCalculationInfo(int baseMonthlySalary, int otherMonthlyIncome, int numberOfMonthsWorking,
+		public TaxCalculationInfo(int monthlySalary, int otherMonthlyIncome, int numberOfMonthsWorking,
 				int annualDeductible, boolean isMarried, int numberOfChildren) {
-			this.baseMonthlySalary = baseMonthlySalary;
+			this.monthlySalary = monthlySalary;
 			this.otherMonthlyIncome = otherMonthlyIncome;
 			this.numberOfMonthsWorking = numberOfMonthsWorking;
 			this.annualDeductible = annualDeductible;
@@ -20,8 +22,8 @@ public class TaxFunction {
 			this.numberOfChildren = numberOfChildren;
 		}
 
-		public int getBaseMonthlySalary() {
-			return baseMonthlySalary;
+		public int getMonthlySalary() {
+			return monthlySalary;
 		}
 
 		public int getOtherMonthlyIncome() {
@@ -47,13 +49,12 @@ public class TaxFunction {
 
 	public static final int MAX_WORKING_MONTHS_PER_YEAR = 12;
 	public static final int MAX_CHILDREN_FOR_TAX = 3;
-	public static final double TAX_RATE = 0.05;
+	public static final BigDecimal TAX_RATE = new BigDecimal("0.05");
 	public static final int STANDARD_DEDUCTIBLE = 54000000;
 	public static final int PER_CHILD_DEDUCTIBLE = 1500000;
 
 	public static int calculateTax(TaxCalculationInfo taxInfo) {
-		int tax = 0;
-		int baseMonthlySalary = taxInfo.getBaseMonthlySalary();
+		int monthlySalary = taxInfo.getMonthlySalary();
 		int otherMonthlyIncome = taxInfo.getOtherMonthlyIncome();
 		int numberOfMonthsWorking = taxInfo.getNumberOfMonthsWorking();
 		int annualDeductible = taxInfo.getAnnualDeductible();
@@ -68,14 +69,16 @@ public class TaxFunction {
 		// Calculate deductible for children
 		int childrenDeductible = numberOfChildren * PER_CHILD_DEDUCTIBLE;
 
-		// Calculate taxable income
-		int totalIncome = (baseMonthlySalary + otherMonthlyIncome) * numberOfMonthsWorking;
+		// Calculate total income
+		int totalIncome = (monthlySalary + otherMonthlyIncome) * numberOfMonthsWorking;
 		int totalDeductible = annualDeductible + STANDARD_DEDUCTIBLE + childrenDeductible;
+
+		// Calculate taxable income
 		int taxableIncome = Math.max(0, totalIncome - totalDeductible);
 
 		// Calculate tax amount
-		tax = (int) Math.round(TAX_RATE * taxableIncome);
+		BigDecimal taxAmount = TAX_RATE.multiply(new BigDecimal(taxableIncome)).setScale(0, BigDecimal.ROUND_HALF_UP);
 
-		return tax;
+		return taxAmount.intValue();
 	}
 }
