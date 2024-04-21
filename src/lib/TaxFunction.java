@@ -3,39 +3,37 @@ package lib;
 public class TaxFunction {
 
 	public static class TaxCalculationInfo {
-		private int monthlySalary;
+		private int baseMonthlySalary;
 		private int otherMonthlyIncome;
-		private int numberOfMonthWorking;
-		private int deductible;
+		private int numberOfMonthsWorking;
+		private int annualDeductible;
 		private boolean isMarried;
 		private int numberOfChildren;
 
-		// Constructor
-		public TaxCalculationInfo(int monthlySalary, int otherMonthlyIncome, int numberOfMonthWorking, int deductible,
-				boolean isMarried, int numberOfChildren) {
-			this.monthlySalary = monthlySalary;
+		public TaxCalculationInfo(int baseMonthlySalary, int otherMonthlyIncome, int numberOfMonthsWorking,
+				int annualDeductible, boolean isMarried, int numberOfChildren) {
+			this.baseMonthlySalary = baseMonthlySalary;
 			this.otherMonthlyIncome = otherMonthlyIncome;
-			this.numberOfMonthWorking = numberOfMonthWorking;
-			this.deductible = deductible;
+			this.numberOfMonthsWorking = numberOfMonthsWorking;
+			this.annualDeductible = annualDeductible;
 			this.isMarried = isMarried;
 			this.numberOfChildren = numberOfChildren;
 		}
 
-		// Getter methods
-		public int getMonthlySalary() {
-			return monthlySalary;
+		public int getBaseMonthlySalary() {
+			return baseMonthlySalary;
 		}
 
 		public int getOtherMonthlyIncome() {
 			return otherMonthlyIncome;
 		}
 
-		public int getNumberOfMonthWorking() {
-			return numberOfMonthWorking;
+		public int getNumberOfMonthsWorking() {
+			return numberOfMonthsWorking;
 		}
 
-		public int getDeductible() {
-			return deductible;
+		public int getAnnualDeductible() {
+			return annualDeductible;
 		}
 
 		public boolean isMarried() {
@@ -49,35 +47,35 @@ public class TaxFunction {
 
 	public static final int MAX_WORKING_MONTHS_PER_YEAR = 12;
 	public static final int MAX_CHILDREN_FOR_TAX = 3;
+	public static final double TAX_RATE = 0.05;
 	public static final int STANDARD_DEDUCTIBLE = 54000000;
 	public static final int PER_CHILD_DEDUCTIBLE = 1500000;
 
 	public static int calculateTax(TaxCalculationInfo taxInfo) {
 		int tax = 0;
-		int monthlySalary = taxInfo.getMonthlySalary();
+		int baseMonthlySalary = taxInfo.getBaseMonthlySalary();
 		int otherMonthlyIncome = taxInfo.getOtherMonthlyIncome();
-		int numberOfMonthWorking = taxInfo.getNumberOfMonthWorking();
-		int deductible = taxInfo.getDeductible();
+		int numberOfMonthsWorking = taxInfo.getNumberOfMonthsWorking();
+		int annualDeductible = taxInfo.getAnnualDeductible();
 		boolean isMarried = taxInfo.isMarried();
 		int numberOfChildren = Math.min(taxInfo.getNumberOfChildren(), MAX_CHILDREN_FOR_TAX);
 
-		// Calculation logic
-		if (numberOfMonthWorking > MAX_WORKING_MONTHS_PER_YEAR) {
+		// Validate number of months working
+		if (numberOfMonthsWorking > MAX_WORKING_MONTHS_PER_YEAR) {
 			throw new IllegalArgumentException("Lebih dari 12 bulan bekerja dalam setahun");
 		}
 
-		if (numberOfChildren > MAX_CHILDREN_FOR_TAX) {
-			numberOfChildren = MAX_CHILDREN_FOR_TAX;
-		}
+		// Calculate deductible for children
+		int childrenDeductible = numberOfChildren * PER_CHILD_DEDUCTIBLE;
 
-		if (isMarried) {
-			tax = (int) Math.round(0.05 * (((monthlySalary + otherMonthlyIncome) * numberOfMonthWorking) - deductible
-					- (STANDARD_DEDUCTIBLE + (numberOfChildren * PER_CHILD_DEDUCTIBLE))));
-		} else {
-			tax = (int) Math.round(0.05 * (((monthlySalary + otherMonthlyIncome) * numberOfMonthWorking) - deductible
-					- STANDARD_DEDUCTIBLE));
-		}
+		// Calculate taxable income
+		int totalIncome = (baseMonthlySalary + otherMonthlyIncome) * numberOfMonthsWorking;
+		int totalDeductible = annualDeductible + STANDARD_DEDUCTIBLE + childrenDeductible;
+		int taxableIncome = Math.max(0, totalIncome - totalDeductible);
 
-		return Math.max(0, tax);
+		// Calculate tax amount
+		tax = (int) Math.round(TAX_RATE * taxableIncome);
+
+		return tax;
 	}
 }
